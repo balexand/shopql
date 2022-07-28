@@ -1,14 +1,26 @@
 defmodule ShopQL.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [
       app: :shopql,
-      version: "0.1.0",
+      description: "Simple Shopify GraphQL client.",
+      version: @version,
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      package: [
+        licenses: ["MIT"],
+        links: %{"GitHub" => "https://github.com/balexand/shopql"}
+      ],
+      docs: [
+        extras: ["README.md"],
+        source_ref: "v#{@version}",
+        source_url: "https://github.com/balexand/shopql"
+      ]
     ]
   end
 
