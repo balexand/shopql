@@ -1,18 +1,5 @@
-defmodule Shopql do
+defmodule ShopQL do
   @moduledoc """
-  Documentation for `Shopql`.
+  TODO
   """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Shopql.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end

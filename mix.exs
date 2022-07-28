@@ -1,4 +1,4 @@
-defmodule Shopql.MixProject do
+defmodule ShopQL.MixProject do
   use Mix.Project
 
   def project do
