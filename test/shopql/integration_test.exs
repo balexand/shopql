@@ -32,7 +32,7 @@ defmodule ShopQL.IntegrationTest do
   end
 
   test "query" do
-    assert {:ok, data, extensions} =
+    assert {:ok, %{"data" => data, "extensions" => extensions}} =
              ShopQL.query(@product_availability_query, %{gid: @gid}, opts())
 
     assert data == %{
@@ -77,7 +77,7 @@ defmodule ShopQL.IntegrationTest do
   end
 
   test "query with missing variable" do
-    assert {:error, errors} = ShopQL.query(@product_availability_query, opts())
+    assert {:error, %{"errors" => errors}} = ShopQL.query(@product_availability_query, opts())
 
     assert errors == [
              %{

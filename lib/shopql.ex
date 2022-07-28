@@ -1,6 +1,6 @@
 defmodule ShopQL do
   @moduledoc """
-  TODO
+  Client library for the [Shopify GraphQL Admin API](https://shopify.dev/api/admin-graphql).
   """
 
   require Logger
@@ -48,6 +48,7 @@ defmodule ShopQL do
 
   @doc """
   Submits a query to the [Shopify Admin GraphQL API](https://shopify.dev/api/admin-graphql).
+  Returns `{:ok, body}` or `{:error, body}`.
 
   ## Options
 
@@ -76,24 +77,24 @@ defmodule ShopQL do
 
     try do
       case opts[:gql_mod].query(query, Keyword.merge(gql_opts(opts), variables: variables)) do
-        {:ok, %{"data" => data, "extensions" => extensions}, _headers} ->
-          {:ok, data, extensions}
+        {:ok, %{"data" => _} = body, _headers} ->
+          {:ok, body}
 
         {:error,
          %{
-           "errors" => [%{"extensions" => %{"code" => "THROTTLED"}}] = errors,
+           "errors" => [%{"extensions" => %{"code" => "THROTTLED"}}],
            "extensions" => extensions
-         }, _headers} ->
+         } = body, _headers} ->
           if opts[:max_attempts_rate_limit] > 1 do
             delay_until_quota_fully_replenished(extensions)
 
             query(query, variables, retry_opts(opts))
           else
-            {:error, errors}
+            {:error, body}
           end
 
-        {:error, %{"errors" => errors}, _headers} ->
-          {:error, errors}
+        {:error, body, _headers} ->
+          {:error, body}
       end
     rescue
       e in [GQL.ConnectionError, GQL.ServerError] ->
