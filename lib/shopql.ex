@@ -3,6 +3,8 @@ defmodule ShopQL do
   TODO
   """
 
+  require Logger
+
   @query_opts_validation [
     access_token: [
       type: :string,
@@ -30,13 +32,33 @@ defmodule ShopQL do
       {:ok, %{"data" => data, "extensions" => extensions}, _headers} ->
         {:ok, data, extensions}
 
-      {:error, %{"errors" => [%{"extensions" => %{"code" => "THROTTLED"}}] = _errors}, _headers} ->
-        # FIXME delay and max attempts
+      {:error,
+       %{
+         "errors" => [%{"extensions" => %{"code" => "THROTTLED"}}] = _errors,
+         "extensions" => extensions
+       }, _headers} ->
+        # FIXME max attempts
+        delay_until_quota_fully_replenished(extensions)
         query(query, variables, opts)
 
       {:error, %{"errors" => errors}, _headers} ->
         {:error, errors}
     end
+  end
+
+  defp delay_until_quota_fully_replenished(%{
+         "cost" => %{
+           "throttleStatus" => %{
+             "currentlyAvailable" => currently_available,
+             "maximumAvailable" => max_available,
+             "restoreRate" => restore_rate
+           }
+         }
+       }) do
+    delay = round((max_available - currently_available) * 1000 / restore_rate)
+
+    Logger.warn("Shopify rate limit exceeded; delaying #{delay}ms before retry")
+    :timer.sleep(max(delay, 0))
   end
 
   defp gql_opts(opts) do

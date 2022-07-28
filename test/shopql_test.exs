@@ -2,6 +2,8 @@ defmodule ShopQLTest do
   use ExUnit.Case, async: true
   doctest ShopQL
 
+  import ExUnit.CaptureLog
+
   import Mox, only: [verify_on_exit!: 1]
   setup :verify_on_exit!
 
@@ -33,7 +35,7 @@ defmodule ShopQLTest do
       "actualQueryCost" => 6,
       "requestedQueryCost" => 8,
       "throttleStatus" => %{
-        "currentlyAvailable" => 400,
+        "currentlyAvailable" => 994,
         "maximumAvailable" => 1.0e3,
         "restoreRate" => 50.0
       }
@@ -121,7 +123,7 @@ defmodule ShopQLTest do
 
   test "query rate limit error retries and succeeds" do
     Mox.expect(ShopQL.MockGQL, :query, 2, fn _, _ ->
-      {:error, %{"errors" => @rate_limit_errors_result}, []}
+      {:error, %{"errors" => @rate_limit_errors_result, "extensions" => @extensions_result}, []}
     end)
 
     Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
@@ -132,8 +134,8 @@ defmodule ShopQLTest do
        }, []}
     end)
 
-    {_time, _} =
-      :timer.tc(fn ->
+    log =
+      capture_log([level: :warn], fn ->
         assert {:ok, %{"product" => @product_result}, @extensions_result} ==
                  ShopQL.query(
                    "query...",
@@ -142,7 +144,7 @@ defmodule ShopQLTest do
                  )
       end)
 
-    # FIXME assert delay
+    assert log =~ ~R{delaying 120ms before retry.+delaying 120ms before retry}s
   end
 
   test "query rate limit error retries until max attempts exceeded" do
