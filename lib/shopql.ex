@@ -27,7 +27,7 @@ defmodule ShopQL do
       doc:
         "Maximum number of attempts to make. You should only increase this value when making an idempotent request."
     ],
-    max_attempts_throttled: [
+    max_attempts_rate_limit: [
       type: :pos_integer,
       default: 3,
       doc:
@@ -62,7 +62,7 @@ defmodule ShopQL do
     `:max_attempts` times. For this type of error we don't know whether or not Shopify ran the
     query. Therefore, only increase `:max_attempts` if you are running an idempotent query. The
     `:min_retry_delay` setting applies in this case.
-  * Rate limit exceeded error - Failed request will be retried up to `:max_attempts_throttled`
+  * Rate limit exceeded error - Failed request will be retried up to `:max_attempts_rate_limit`
     times. For this type of error we know that Shopify didn't run the query so it is safe to retry
     even if your query is not idempotent. Will delay between requests for enough time for
     [Shopify's cost points](https://shopify.dev/api/admin-graphql#rate_limits) to be fully
@@ -84,7 +84,7 @@ defmodule ShopQL do
            "errors" => [%{"extensions" => %{"code" => "THROTTLED"}}] = errors,
            "extensions" => extensions
          }, _headers} ->
-          if opts[:max_attempts_throttled] > 1 do
+          if opts[:max_attempts_rate_limit] > 1 do
             delay_until_quota_fully_replenished(extensions)
 
             query(query, variables, retry_opts(opts))
@@ -114,7 +114,7 @@ defmodule ShopQL do
   defp retry_opts(opts) do
     opts
     |> Keyword.update!(:max_attempts, &decrement_attempt_count/1)
-    |> Keyword.update!(:max_attempts_throttled, &decrement_attempt_count/1)
+    |> Keyword.update!(:max_attempts_rate_limit, &decrement_attempt_count/1)
     |> Keyword.update!(:min_retry_delay, &(&1 * 2))
   end
 
