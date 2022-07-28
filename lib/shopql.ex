@@ -35,9 +35,9 @@ defmodule ShopQL do
     ],
     min_retry_delay: [
       type: :pos_integer,
-      default: 250,
+      default: 500,
       doc:
-        "Delay in ms between failed attempts. The delay will be doubled after each subsequent retry. For example, if set to `250` the first delay will be 250ms, the second 500ms, and the third 750ms. This doesn't apply when a rate limit error occurs."
+        "Delay in ms between failed attempts. The delay will be doubled after each subsequent retry. For example, if set to `500` the first delay will be 500ms, the second 1000ms, and the third 2000ms. This doesn't apply when a rate limit error occurs."
     ],
     shop_name: [
       type: :string,
@@ -74,25 +74,48 @@ defmodule ShopQL do
   def query(query, variables \\ %{}, opts) do
     opts = NimbleOptions.validate!(opts, @query_opts_validation)
 
-    case opts[:gql_mod].query(query, Keyword.merge(gql_opts(opts), variables: variables)) do
-      {:ok, %{"data" => data, "extensions" => extensions}, _headers} ->
-        {:ok, data, extensions}
+    try do
+      case opts[:gql_mod].query(query, Keyword.merge(gql_opts(opts), variables: variables)) do
+        {:ok, %{"data" => data, "extensions" => extensions}, _headers} ->
+          {:ok, data, extensions}
 
-      {:error,
-       %{
-         "errors" => [%{"extensions" => %{"code" => "THROTTLED"}}] = errors,
-         "extensions" => extensions
-       }, _headers} ->
-        if opts[:max_attempts_throttled] > 1 do
-          delay_until_quota_fully_replenished(extensions)
-          query(query, variables, Keyword.update!(opts, :max_attempts_throttled, &(&1 - 1)))
-        else
+        {:error,
+         %{
+           "errors" => [%{"extensions" => %{"code" => "THROTTLED"}}] = errors,
+           "extensions" => extensions
+         }, _headers} ->
+          if opts[:max_attempts_throttled] > 1 do
+            delay_until_quota_fully_replenished(extensions)
+
+            query(query, variables, retry_opts(opts))
+          else
+            {:error, errors}
+          end
+
+        {:error, %{"errors" => errors}, _headers} ->
           {:error, errors}
-        end
+      end
+    rescue
+      e in [GQL.ConnectionError, GQL.ServerError] ->
+        if opts[:max_attempts] > 1 do
+          Logger.warn("Retrying request in #{opts[:min_retry_delay]}ms: #{inspect(e)}")
+          :timer.sleep(opts[:min_retry_delay])
 
-      {:error, %{"errors" => errors}, _headers} ->
-        {:error, errors}
+          query(query, variables, retry_opts(opts))
+        else
+          reraise e, __STACKTRACE__
+        end
     end
+  end
+
+  defp decrement_attempt_count(1), do: 1
+  defp decrement_attempt_count(n), do: n - 1
+
+  defp retry_opts(opts) do
+    opts
+    |> Keyword.update!(:max_attempts, &decrement_attempt_count/1)
+    |> Keyword.update!(:max_attempts_throttled, &decrement_attempt_count/1)
+    |> Keyword.update!(:min_retry_delay, &(&1 * 2))
   end
 
   defp delay_until_quota_fully_replenished(%{

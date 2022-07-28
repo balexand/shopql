@@ -129,6 +129,46 @@ defmodule ShopQLTest do
                  end
   end
 
+  describe "connection error" do
+    test "does not retry by default" do
+      Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
+        raise %GQL.ConnectionError{reason: :timeout}
+      end)
+
+      assert_raise GQL.ConnectionError, fn ->
+        ShopQL.query("query...", %{gid: @gid}, opts())
+      end
+    end
+
+    test "retries and succeeds" do
+      Mox.expect(ShopQL.MockGQL, :query, 3, fn _, _ ->
+        raise %GQL.ConnectionError{reason: :timeout}
+      end)
+
+      Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
+        {:ok,
+         %{
+           "data" => %{"product" => @product_result},
+           "extensions" => @extensions_result
+         }, []}
+      end)
+
+      log =
+        capture_log([level: :warn], fn ->
+          assert {:ok, %{"product" => @product_result}, @extensions_result} ==
+                   ShopQL.query(
+                     "query...",
+                     %{gid: @gid},
+                     Keyword.merge(opts(), max_attempts: 4, min_retry_delay: 50)
+                   )
+        end)
+
+      assert log =~ "Retrying request in 50ms: %GQL.ConnectionError{reason: :timeout}"
+      assert log =~ "Retrying request in 100ms: %GQL.ConnectionError{reason: :timeout}"
+      assert log =~ "Retrying request in 200ms: %GQL.ConnectionError{reason: :timeout}"
+    end
+  end
+
   describe "rate limit exceeded error" do
     test "retries twice then succeeds on third try" do
       Mox.expect(ShopQL.MockGQL, :query, 2, fn _, _ ->
