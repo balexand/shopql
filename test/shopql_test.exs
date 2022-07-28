@@ -80,7 +80,13 @@ defmodule ShopQLTest do
   end
 
   test "query" do
-    Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
+    Mox.expect(ShopQL.MockGQL, :query, fn "query...", opts ->
+      assert opts == [
+               headers: [{"X-Shopify-Access-Token", "fake_token"}],
+               url: "https://brian-testing-x.myshopify.com/admin/api/2022-07/graphql.json",
+               variables: %{gid: "gid://shopify/Product/7595694915746"}
+             ]
+
       {:ok,
        %{
          "data" => %{"product" => @product_result},
