@@ -7,6 +7,8 @@ defmodule ShopQLTest do
   import Mox, only: [verify_on_exit!: 1]
   setup :verify_on_exit!
 
+  @gid "gid://shopify/Product/7595694915746"
+
   @errors_result [
     %{
       "extensions" => %{
@@ -89,7 +91,7 @@ defmodule ShopQLTest do
     assert {:ok, %{"product" => @product_result}, @extensions_result} ==
              ShopQL.query(
                "query...",
-               %{gid: "gid://shopify/Product/7595694915746"},
+               %{gid: @gid},
                opts()
              )
   end
@@ -121,33 +123,38 @@ defmodule ShopQLTest do
                  end
   end
 
-  test "query rate limit error retries and succeeds" do
-    Mox.expect(ShopQL.MockGQL, :query, 2, fn _, _ ->
-      {:error, %{"errors" => @rate_limit_errors_result, "extensions" => @extensions_result}, []}
-    end)
-
-    Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
-      {:ok,
-       %{
-         "data" => %{"product" => @product_result},
-         "extensions" => @extensions_result
-       }, []}
-    end)
-
-    log =
-      capture_log([level: :warn], fn ->
-        assert {:ok, %{"product" => @product_result}, @extensions_result} ==
-                 ShopQL.query(
-                   "query...",
-                   %{gid: "gid://shopify/Product/7595694915746"},
-                   opts()
-                 )
+  describe "rate limit exceeded error" do
+    test "retries twice then succeeds on third try" do
+      Mox.expect(ShopQL.MockGQL, :query, 2, fn _, _ ->
+        {:error, %{"errors" => @rate_limit_errors_result, "extensions" => @extensions_result}, []}
       end)
 
-    assert log =~ ~R{delaying 120ms before retry.+delaying 120ms before retry}s
-  end
+      Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
+        {:ok,
+         %{
+           "data" => %{"product" => @product_result},
+           "extensions" => @extensions_result
+         }, []}
+      end)
 
-  test "query rate limit error retries until max attempts exceeded" do
-    # FIXME
+      log =
+        capture_log([level: :warn], fn ->
+          assert {:ok, %{"product" => @product_result}, @extensions_result} ==
+                   ShopQL.query("query...", %{gid: @gid}, opts())
+        end)
+
+      assert log =~ ~R{delaying 120ms before retry.+delaying 120ms before retry}s
+    end
+
+    test "retries 3 times then fails" do
+      Mox.expect(ShopQL.MockGQL, :query, 3, fn _, _ ->
+        {:error, %{"errors" => @rate_limit_errors_result, "extensions" => @extensions_result}, []}
+      end)
+
+      capture_log([level: :warn], fn ->
+        assert {:error, @rate_limit_errors_result} ==
+                 ShopQL.query("query...", %{gid: @gid}, opts())
+      end)
+    end
   end
 end

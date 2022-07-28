@@ -19,6 +19,11 @@ defmodule ShopQL do
       default: GQL,
       doc: false
     ],
+    max_attempts_throttled: [
+      type: :pos_integer,
+      default: 3,
+      doc: "Maximum number of attempts to make after receiving rate limit throttled error."
+    ],
     shop_name: [
       type: :string,
       required: true
@@ -34,12 +39,15 @@ defmodule ShopQL do
 
       {:error,
        %{
-         "errors" => [%{"extensions" => %{"code" => "THROTTLED"}}] = _errors,
+         "errors" => [%{"extensions" => %{"code" => "THROTTLED"}}] = errors,
          "extensions" => extensions
        }, _headers} ->
-        # FIXME max attempts
-        delay_until_quota_fully_replenished(extensions)
-        query(query, variables, opts)
+        if opts[:max_attempts_throttled] > 1 do
+          delay_until_quota_fully_replenished(extensions)
+          query(query, variables, Keyword.update!(opts, :max_attempts_throttled, &(&1 - 1)))
+        else
+          {:error, errors}
+        end
 
       {:error, %{"errors" => errors}, _headers} ->
         {:error, errors}
