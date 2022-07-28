@@ -55,10 +55,10 @@ defmodule ShopQL do
            }
          }
        }) do
-    delay = round((max_available - currently_available) * 1000 / restore_rate)
+    delay = round((max_available - currently_available) * 1000 / restore_rate) |> max(0)
 
     Logger.warn("Shopify rate limit exceeded; delaying #{delay}ms before retry")
-    :timer.sleep(max(delay, 0))
+    :timer.sleep(delay)
   end
 
   defp gql_opts(opts) do
