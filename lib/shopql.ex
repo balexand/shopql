@@ -25,7 +25,7 @@ defmodule ShopQL do
       type: :pos_integer,
       default: 1,
       doc:
-        "Maximum number of attempts to make. It is only safe to set this to a value > 1 if your query is idempotent."
+        "Maximum number of attempts to make. You should only increase this value when making an idempotent request."
     ],
     max_attempts_throttled: [
       type: :pos_integer,
@@ -37,7 +37,7 @@ defmodule ShopQL do
       type: :pos_integer,
       default: 250,
       doc:
-        "Delay in ms between failed attempts. The delay will be doubled after each subsequent retry. For example, with the default value the first delay will be 250ms, the second 500ms, and the third 750ms. This doesn't apply when a rate limit error occurs."
+        "Delay in ms between failed attempts. The delay will be doubled after each subsequent retry. For example, if set to `250` the first delay will be 250ms, the second 500ms, and the third 750ms. This doesn't apply when a rate limit error occurs."
     ],
     shop_name: [
       type: :string,
@@ -55,7 +55,8 @@ defmodule ShopQL do
 
   ## Retries after error
 
-  The retry logic depends upon the type of error:
+  The retry logic depends upon the type of error. A warnings will be logged whenever a request is
+  retried.
 
   * Connection errors like a 5xx HTTP response or timeout - Request will be retried up to
     `:max_attempts` times. For this type of error we don't know whether or not Shopify ran the
