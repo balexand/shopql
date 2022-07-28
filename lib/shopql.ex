@@ -29,6 +29,9 @@ defmodule ShopQL do
     case opts[:gql_mod].query(query, Keyword.merge(gql_opts(opts), variables: variables)) do
       {:ok, %{"data" => data, "extensions" => extensions}, _headers} ->
         {:ok, data, extensions}
+
+      {:error, %{"errors" => errors}, _headers} ->
+        {:error, errors}
     end
   end
 

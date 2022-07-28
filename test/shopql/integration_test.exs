@@ -3,6 +3,24 @@ defmodule ShopQL.IntegrationTest do
 
   @moduletag :integration
 
+  @product_availability_query """
+  query($gid: ID!) {
+    product(id: $gid) {
+      variants(first: 5) {
+        pageInfo {
+          hasNextPage
+        },
+        edges {
+          node {
+            id
+            sellableOnlineQuantity
+          }
+        }
+      }
+    }
+  }
+  """
+
   defp opts do
     [
       access_token: System.fetch_env!("SHOPQL_TEST_ACCESS_TOKEN"),
@@ -14,23 +32,7 @@ defmodule ShopQL.IntegrationTest do
   test "request" do
     assert {:ok, data, extensions} =
              ShopQL.request(
-               """
-               query($gid: ID!) {
-                 product(id: $gid) {
-                   variants(first: 5) {
-                     pageInfo {
-                       hasNextPage
-                     },
-                     edges {
-                       node {
-                         id
-                         sellableOnlineQuantity
-                       }
-                     }
-                   }
-                 }
-               }
-               """,
+               @product_availability_query,
                %{gid: "gid://shopify/Product/7595694915746"},
                opts()
              )
@@ -74,5 +76,20 @@ defmodule ShopQL.IntegrationTest do
                }
              }
            } = extensions
+  end
+
+  test "request with missing variable" do
+    assert {:error, errors} = ShopQL.request(@product_availability_query, opts())
+
+    assert errors == [
+             %{
+               "extensions" => %{
+                 "problems" => [%{"explanation" => "Expected value to not be null", "path" => []}],
+                 "value" => nil
+               },
+               "locations" => [%{"column" => 7, "line" => 1}],
+               "message" => "Variable $gid of type ID! was provided invalid value"
+             }
+           ]
   end
 end
