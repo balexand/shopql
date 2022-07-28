@@ -22,7 +22,7 @@ end
 
 ## Retrying failed requests
 
-This library supports retrying failed requests. The default settings are safe regardless of whether or not your request is idempotent. See [`ShopQL.query/3`](https://hexdocs.pm/shopql/ShopQL.html#query/3) for details.
+This library supports retrying failed requests. The default settings are safe regardless of whether or not your query is idempotent. See [`ShopQL.query/3`](https://hexdocs.pm/shopql/ShopQL.html#query/3) for details.
 
 ## Request throttling
 
