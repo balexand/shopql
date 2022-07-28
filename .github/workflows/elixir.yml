@@ -54,3 +54,6 @@ jobs:
         run: MIX_ENV=test mix compile --warnings-as-errors
       - name: Run tests
         run: mix test --only integration --warnings-as-errors
+        env:
+          SHOPQL_TEST_ACCESS_TOKEN: ${{ secrets.SHOPQL_TEST_ACCESS_TOKEN }}
+        if: env.SHOPQL_TEST_ACCESS_TOKEN
