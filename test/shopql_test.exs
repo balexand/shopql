@@ -95,11 +95,7 @@ defmodule ShopQLTest do
     end)
 
     assert {:ok, %{"data" => %{"product" => @product_result}, "extensions" => @extensions_result}} ==
-             ShopQL.query(
-               "query...",
-               %{gid: @gid},
-               opts()
-             )
+             ShopQL.query("query...", %{gid: @gid}, opts())
   end
 
   test "query with graphql errors" do
@@ -127,6 +123,32 @@ defmodule ShopQLTest do
                  fn ->
                    ShopQL.query("", [])
                  end
+  end
+
+  test "query!" do
+    Mox.expect(ShopQL.MockGQL, :query, fn "query...", _opts ->
+      {:ok,
+       %{
+         "data" => %{"product" => @product_result},
+         "extensions" => @extensions_result
+       }, []}
+    end)
+
+    assert %{"data" => %{"product" => @product_result}, "extensions" => @extensions_result} ==
+             ShopQL.query!("query...", %{gid: @gid}, opts())
+  end
+
+  test "query! with graphql errors" do
+    Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
+      {:error, %{"errors" => @errors_result}, []}
+    end)
+
+    exception =
+      assert_raise ShopQL.Error, fn ->
+        ShopQL.query!("query...", opts())
+      end
+
+    assert exception.body == %{"errors" => @errors_result}
   end
 
   describe "connection error" do

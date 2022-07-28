@@ -3,6 +3,12 @@ defmodule ShopQL do
   Client library for the [Shopify GraphQL Admin API](https://shopify.dev/api/admin-graphql).
   """
 
+  defmodule Error do
+    defexception [:body]
+
+    def message(exception), do: inspect(exception.body)
+  end
+
   require Logger
 
   @query_opts_validation [
@@ -45,6 +51,16 @@ defmodule ShopQL do
       doc: "Your Shopify domain is `<shop_name>.myshopify.com`."
     ]
   ]
+
+  @doc """
+  Like `query/3`, except raises `ShopQL.Error` if an error occurs.
+  """
+  def query!(query, variables \\ %{}, opts) do
+    case query(query, variables, opts) do
+      {:ok, body} -> body
+      {:error, body} -> raise %Error{body: body}
+    end
+  end
 
   @doc """
   Submits a query to the [Shopify Admin GraphQL API](https://shopify.dev/api/admin-graphql).
