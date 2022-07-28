@@ -22,6 +22,7 @@ defmodule ShopQL.MixProject do
   defp deps do
     [
       {:gql, "~> 0.5"},
+      {:nimble_options, "~> 0.4"},
 
       # Dev/test dependencies
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
