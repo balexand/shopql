@@ -21,6 +21,8 @@ defmodule Shopql.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:gql, "~> 0.5"},
+
       # Dev/test dependencies
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false}
