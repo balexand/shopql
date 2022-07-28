@@ -11,7 +11,7 @@ The package can be installed by adding `shopql` to your list of dependencies in 
 ```elixir
 def deps do
   [
-    {:shopql, "~> 0.1.0"}
+    {:shopql, "~> 0.2.0"}
   ]
 end
 ```
