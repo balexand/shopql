@@ -18,6 +18,16 @@ defmodule ShopQLTest do
     }
   ]
 
+  @rate_limit_errors_result [
+    %{
+      "extensions" => %{
+        "code" => "THROTTLED",
+        "documentation" => "https://shopify.dev/api/usage/rate-limits"
+      },
+      "message" => "Throttled"
+    }
+  ]
+
   @extensions_result %{
     "cost" => %{
       "actualQueryCost" => 6,
@@ -65,31 +75,29 @@ defmodule ShopQLTest do
     ]
   end
 
-  test "request" do
+  test "query" do
     Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
       {:ok,
        %{
-         "data" => %{
-           "product" => @product_result
-         },
+         "data" => %{"product" => @product_result},
          "extensions" => @extensions_result
        }, []}
     end)
 
     assert {:ok, %{"product" => @product_result}, @extensions_result} ==
-             ShopQL.request(
+             ShopQL.query(
                "query...",
                %{gid: "gid://shopify/Product/7595694915746"},
                opts()
              )
   end
 
-  test "request with graphql errors" do
+  test "query with graphql errors" do
     Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
       {:error, %{"errors" => @errors_result}, []}
     end)
 
-    assert {:error, errors} = ShopQL.request("query...", opts())
+    assert {:error, errors} = ShopQL.query("query...", opts())
 
     assert errors == [
              %{
@@ -103,11 +111,41 @@ defmodule ShopQLTest do
            ]
   end
 
-  test "request without required options" do
+  test "query without required options" do
     assert_raise NimbleOptions.ValidationError,
                  "required option :access_token not found, received options: []",
                  fn ->
-                   ShopQL.request("", [])
+                   ShopQL.query("", [])
                  end
+  end
+
+  test "query rate limit error retries and succeeds" do
+    Mox.expect(ShopQL.MockGQL, :query, 2, fn _, _ ->
+      {:error, %{"errors" => @rate_limit_errors_result}, []}
+    end)
+
+    Mox.expect(ShopQL.MockGQL, :query, fn _, _ ->
+      {:ok,
+       %{
+         "data" => %{"product" => @product_result},
+         "extensions" => @extensions_result
+       }, []}
+    end)
+
+    {_time, _} =
+      :timer.tc(fn ->
+        assert {:ok, %{"product" => @product_result}, @extensions_result} ==
+                 ShopQL.query(
+                   "query...",
+                   %{gid: "gid://shopify/Product/7595694915746"},
+                   opts()
+                 )
+      end)
+
+    # FIXME assert delay
+  end
+
+  test "query rate limit error retries until max attempts exceeded" do
+    # FIXME
   end
 end
