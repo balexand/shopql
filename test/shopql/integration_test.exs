@@ -17,7 +17,7 @@ defmodule ShopQL.IntegrationTest do
         """
         query($gid: ID!) {
           product(id: $gid) {
-            variants(first: 25) {
+            variants(first: 5) {
               pageInfo {
                 hasNextPage
               },
@@ -66,7 +66,7 @@ defmodule ShopQL.IntegrationTest do
             %{
               "cost" => %{
                 "actualQueryCost" => 6,
-                "requestedQueryCost" => 28,
+                "requestedQueryCost" => 8,
                 "throttleStatus" => %{
                   "currentlyAvailable" => _currently_available,
                   "maximumAvailable" => _maximum_available,
