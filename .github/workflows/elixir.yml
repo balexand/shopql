@@ -35,10 +35,10 @@ jobs:
         run: mix format --check-formatted
 
   integration_test:
+    if: secrets.SHOPQL_TEST_ACCESS_TOKEN
+
     name: Integration test
     runs-on: ubuntu-18.04
-
-    if: secrets.SHOPQL_TEST_ACCESS_TOKEN
 
     steps:
       - uses: actions/checkout@v2
