@@ -33,7 +33,7 @@ defmodule ShopQLTest do
       "actualQueryCost" => 6,
       "requestedQueryCost" => 8,
       "throttleStatus" => %{
-        "currentlyAvailable" => 994,
+        "currentlyAvailable" => 400,
         "maximumAvailable" => 1.0e3,
         "restoreRate" => 50.0
       }
