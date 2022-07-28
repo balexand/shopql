@@ -27,7 +27,8 @@ defmodule ShopQL do
     opts = NimbleOptions.validate!(opts, @request_opts_validation)
 
     case opts[:gql_mod].query(query, Keyword.merge(gql_opts(opts), variables: variables)) do
-      {:ok, %{"data" => _data, "extensions" => _extensions}, _headers} = resp -> resp
+      {:ok, %{"data" => data, "extensions" => extensions}, _headers} ->
+        {:ok, data, extensions}
     end
   end
 
