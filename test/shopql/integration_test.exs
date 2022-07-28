@@ -21,6 +21,8 @@ defmodule ShopQL.IntegrationTest do
   }
   """
 
+  @gid "gid://shopify/Product/7595694915746"
+
   defp opts do
     [
       access_token: System.fetch_env!("SHOPQL_TEST_ACCESS_TOKEN"),
@@ -31,11 +33,7 @@ defmodule ShopQL.IntegrationTest do
 
   test "query" do
     assert {:ok, data, extensions} =
-             ShopQL.query(
-               @product_availability_query,
-               %{gid: "gid://shopify/Product/7595694915746"},
-               opts()
-             )
+             ShopQL.query(@product_availability_query, %{gid: @gid}, opts())
 
     assert data == %{
              "product" => %{
