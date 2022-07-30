@@ -1,6 +1,6 @@
 # ShopQL
 
-[![Package](https://img.shields.io/badge/-Package-important)](https://hex.pm/packages/shopql) [![Documentation](https://img.shields.io/badge/-Documentation-blueviolet)](https://hexdocs.pm/shopql)
+[![Package](https://img.shields.io/hexpm/v/shopql.svg)](https://hex.pm/packages/shopql) [![Documentation](http://img.shields.io/badge/hex.pm-docs-green.svg?style=flat)](https://hexdocs.pm/shopql) ![CI](https://github.com/balexand/shopql/actions/workflows/elixir.yml/badge.svg)
 
 Simple Shopify GraphQL client for Elixir.
 
