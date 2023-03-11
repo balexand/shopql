@@ -119,7 +119,7 @@ defmodule ShopQLTest do
 
   test "query without required options" do
     assert_raise NimbleOptions.ValidationError,
-                 "required option :access_token not found, received options: []",
+                 "required :access_token option not found, received options: []",
                  fn ->
                    ShopQL.query("", [])
                  end
