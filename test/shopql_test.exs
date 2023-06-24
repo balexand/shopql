@@ -176,7 +176,7 @@ defmodule ShopQLTest do
       end)
 
       log =
-        capture_log([level: :warn], fn ->
+        capture_log([level: :warning], fn ->
           assert {:ok,
                   %{"data" => %{"product" => @product_result}, "extensions" => @extensions_result}} ==
                    ShopQL.query(
@@ -207,7 +207,7 @@ defmodule ShopQLTest do
       end)
 
       log =
-        capture_log([level: :warn], fn ->
+        capture_log([level: :warning], fn ->
           assert {:ok,
                   %{"data" => %{"product" => @product_result}, "extensions" => @extensions_result}} ==
                    ShopQL.query("query...", %{gid: @gid}, opts())
@@ -221,7 +221,7 @@ defmodule ShopQLTest do
         {:error, %{"errors" => @rate_limit_errors_result, "extensions" => @extensions_result}, []}
       end)
 
-      capture_log([level: :warn], fn ->
+      capture_log([level: :warning], fn ->
         assert {:error, %{"errors" => errors, "extensions" => _}} =
                  ShopQL.query("query...", %{gid: @gid}, opts())
 
