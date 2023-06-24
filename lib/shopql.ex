@@ -115,7 +115,7 @@ defmodule ShopQL do
     rescue
       e in [GQL.ConnectionError, GQL.ServerError] ->
         if opts[:max_attempts] > 1 do
-          Logger.warn("Retrying request in #{opts[:min_retry_delay]}ms: #{inspect(e)}")
+          Logger.warning("Retrying request in #{opts[:min_retry_delay]}ms: #{inspect(e)}")
           :timer.sleep(opts[:min_retry_delay])
 
           query(query, variables, retry_opts(opts))
@@ -146,7 +146,7 @@ defmodule ShopQL do
        }) do
     delay = round((max_available - currently_available) * 1000 / restore_rate) |> max(0)
 
-    Logger.warn("Shopify rate limit exceeded; delaying #{delay}ms before retry")
+    Logger.warning("Shopify rate limit exceeded; delaying #{delay}ms before retry")
     :timer.sleep(delay)
   end
 
