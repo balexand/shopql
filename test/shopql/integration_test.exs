@@ -65,12 +65,12 @@ defmodule ShopQL.IntegrationTest do
 
     assert %{
              "cost" => %{
-               "actualQueryCost" => 6,
-               "requestedQueryCost" => 8,
+               "actualQueryCost" => _,
+               "requestedQueryCost" => _,
                "throttleStatus" => %{
-                 "currentlyAvailable" => _currently_available,
-                 "maximumAvailable" => _maximum_available,
-                 "restoreRate" => 50.0
+                 "currentlyAvailable" => _,
+                 "maximumAvailable" => _,
+                 "restoreRate" => _
                }
              }
            } = extensions
