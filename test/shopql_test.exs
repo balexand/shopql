@@ -213,7 +213,7 @@ defmodule ShopQLTest do
                    ShopQL.query("query...", %{gid: @gid}, opts())
         end)
 
-      assert log =~ ~R{delaying 120ms before retry.+delaying 120ms before retry}s
+      assert log =~ ~r{delaying 120ms before retry.+delaying 120ms before retry}s
     end
 
     test "retries 3 times then fails" do
