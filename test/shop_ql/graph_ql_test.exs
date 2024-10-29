@@ -6,31 +6,26 @@ defmodule ShopQL.GraphQlTest do
   test "schema_to_fragments/1" do
     expected = """
     fragment MoneyV2Fragment on MoneyV2 {
-      amount,currencyCode
-
-
+      amount
+      currencyCode
     }
 
     fragment AppliedGiftCardFragment on AppliedGiftCard {
       id
-
-
     }
 
     fragment BaseCartLineFragment on BaseCartLine {
       id
-
-
     }
 
     fragment CartCostFragment on CartCost {
       subtotalAmountEstimated
-
       subtotalAmount { ...MoneyV2Fragment }
     }
 
     fragment CartFragment on Cart {
-      id,checkoutUrl
+      id
+      checkoutUrl
       lines(first: 250) { pageInfo { hasNextPage }, nodes { ...BaseCartLineFragment } }
       appliedGiftCards { ...AppliedGiftCardFragment }
       cost { ...CartCostFragment }

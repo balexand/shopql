@@ -39,21 +39,24 @@ defmodule ShopQL.GraphQL do
       Enum.map(connection_fields, fn field ->
         name = schema.__schema__(:embed, field).related |> type_name()
 
-        "  #{camelized_name(field)}(first: 250) { pageInfo { hasNextPage }, nodes { ...#{fragment_name(name)} } }"
+        "#{camelized_name(field)}(first: 250) { pageInfo { hasNextPage }, nodes { ...#{fragment_name(name)} } }"
       end)
 
     embeds_gql =
       Enum.map(embed_fields, fn field ->
         name = schema.__schema__(:embed, field).related |> type_name()
 
-        "  #{camelized_name(field)} { ...#{fragment_name(name)} }"
+        "#{camelized_name(field)} { ...#{fragment_name(name)} }"
       end)
+
+    gql =
+      [Enum.map(fields, &camelized_name/1), connections_gql, embeds_gql]
+      |> List.flatten()
+      |> Enum.join("\n  ")
 
     """
     fragment #{fragment_name(name)} on #{name} {
-      #{fields |> Enum.map(&camelized_name/1) |> Enum.join(",")}
-    #{Enum.join(connections_gql, "\n")}
-    #{Enum.join(embeds_gql, "\n")}
+      #{gql}
     }
     """
   end
