@@ -39,6 +39,7 @@ defmodule ShopQL.MixProject do
     [
       {:gql, "~> 0.6"},
       {:nimble_options, "~> 0.4 or ~> 1.0"},
+      {:req, "~> 0.5"},
 
       # Dev/test dependencies
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
