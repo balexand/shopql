@@ -11,6 +11,11 @@ defmodule ShopQL.Storefront do
       required: true,
       doc: "Shopify API version, like `2024-10`."
     ],
+    buyer_ip: [
+      type: :string,
+      doc:
+        "IP address of buyer. [Shopify uses this to accurately enforce IP-level bot and platform protection](https://shopify.dev/docs/api/usage/authentication#making-server-side-requests)."
+    ],
     req: [
       type: {:struct, Req.Request},
       required: true,
@@ -30,13 +35,19 @@ defmodule ShopQL.Storefront do
   ]
 
   @doc """
+  FIXME
+
+  When making requests on behalf of a buyer it is suggested to pass the `:buyer_ip` option.
+  Otherwise, there is a risk that your server's IP could be blocked by Shopify.
+
+  FIXME document errors
 
   ## Options
 
   #{NimbleOptions.docs(@query_opts_validation)}
   """
   def query(query, opts) do
-    # FIXME client IP
+    # FIXME buyer IP
 
     opts =
       opts
@@ -55,7 +66,6 @@ defmodule ShopQL.Storefront do
       %Req.Response{status: 200, body: %{"data" => data}} -> data
     end
 
-    # FIXME document exceptional error handling
     # FIXME handle non-exceptional errors (https://shopify.dev/docs/api/storefront#status_and_error_codes)
   end
 end
