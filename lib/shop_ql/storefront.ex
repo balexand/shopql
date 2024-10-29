@@ -63,7 +63,9 @@ defmodule ShopQL.Storefront do
       }
     )
     |> case do
-      %Req.Response{status: 200, body: %{"data" => data}} -> data
+      # FIXME convert error caused by GraphQL syntax error
+      %Req.Response{status: 200, body: %{"errors" => errors}} -> {:error, errors}
+      %Req.Response{status: 200, body: %{"data" => data}} -> {:ok, data}
     end
 
     # FIXME handle non-exceptional errors (https://shopify.dev/docs/api/storefront#status_and_error_codes)

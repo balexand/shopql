@@ -37,6 +37,7 @@ defmodule ShopQL.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ecto, "~> 3.0", optional: true},
       {:gql, "~> 0.6"},
       {:nimble_options, "~> 0.4 or ~> 1.0"},
       {:req, "~> 0.5"},
