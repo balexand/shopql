@@ -23,19 +23,36 @@ defmodule ShopQL.GraphQL do
   defp schema_to_fragment(schema) do
     name = type_name(schema)
 
-    embed_fields = schema.__schema__(:embeds)
-    fields = schema.__schema__(:fields) -- embed_fields
+    connection_fields =
+      if function_exported?(schema, :connection_fields, 0) do
+        schema.connection_fields()
+      else
+        []
+      end
+
+    embed_and_connection_fields = schema.__schema__(:embeds)
+    embed_fields = embed_and_connection_fields -- connection_fields
+    fields = schema.__schema__(:fields) -- embed_and_connection_fields
+
+    # NOTE: current implementation doesn't provide a way to paginate connections
+    connections_gql =
+      Enum.map(connection_fields, fn field ->
+        name = schema.__schema__(:embed, field).related |> type_name()
+
+        "  #{camelized_name(field)}(first: 250) { pageInfo { hasNextPage }, nodes { ...#{fragment_name(name)} } }"
+      end)
 
     embeds_gql =
-      Enum.map(embed_fields, fn embed_field ->
-        name = schema.__schema__(:embed, embed_field).related |> type_name()
+      Enum.map(embed_fields, fn field ->
+        name = schema.__schema__(:embed, field).related |> type_name()
 
-        "  #{camelized_name(embed_field)} { ...#{fragment_name(name)} }"
+        "  #{camelized_name(field)} { ...#{fragment_name(name)} }"
       end)
 
     """
     fragment #{fragment_name(name)} on #{name} {
       #{fields |> Enum.map(&camelized_name/1) |> Enum.join(",")}
+    #{Enum.join(connections_gql, "\n")}
     #{Enum.join(embeds_gql, "\n")}
     }
     """
