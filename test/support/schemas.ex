@@ -8,11 +8,13 @@ defmodule MyApp.MoneyV2 do
   end
 end
 
-defmodule MyApp.AppliedGiftCard do
+defmodule MyApp.CartDiscountAllocation do
   use Ecto.Schema
 
-  @primary_key {:id, :string, autogenerate: false}
+  @primary_key false
   embedded_schema do
+    embeds_one :discounted_amount, MyApp.MoneyV2
+    field :target_type, :string
   end
 end
 
@@ -21,6 +23,9 @@ defmodule MyApp.BaseCartLine do
 
   @primary_key {:id, :string, autogenerate: false}
   embedded_schema do
+    field :quantity, :integer
+
+    # FIXME merchandise (union)
   end
 end
 
@@ -40,9 +45,12 @@ defmodule MyApp.Cart do
 
   @primary_key {:id, :string, autogenerate: false}
   embedded_schema do
-    embeds_many :applied_gift_cards, MyApp.AppliedGiftCard
     embeds_one :cost, MyApp.CartCost
+    embeds_many :discount_allocations, MyApp.CartDiscountAllocation
+
+    # connection
     embeds_many :lines, MyApp.BaseCartLine
+
     field :checkout_url, :string
   end
 

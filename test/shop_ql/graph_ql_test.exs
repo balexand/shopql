@@ -10,12 +10,9 @@ defmodule ShopQL.GraphQlTest do
       currencyCode
     }
 
-    fragment AppliedGiftCardFragment on AppliedGiftCard {
-      id
-    }
-
     fragment BaseCartLineFragment on BaseCartLine {
       id
+      quantity
     }
 
     fragment CartCostFragment on CartCost {
@@ -27,8 +24,13 @@ defmodule ShopQL.GraphQlTest do
       id
       checkoutUrl
       lines(first: 250) { pageInfo { hasNextPage }, nodes { ...BaseCartLineFragment } }
-      appliedGiftCards { ...AppliedGiftCardFragment }
       cost { ...CartCostFragment }
+      discountAllocations { ...CartDiscountAllocationFragment }
+    }
+
+    fragment CartDiscountAllocationFragment on CartDiscountAllocation {
+      targetType
+      discountedAmount { ...MoneyV2Fragment }
     }
     """
 
