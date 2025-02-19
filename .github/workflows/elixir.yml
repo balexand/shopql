@@ -9,9 +9,13 @@ jobs:
 
     strategy:
       matrix:
-        elixir-version: ["1.15"]
-        otp-version: ["25", "26"]
+        elixir-version: ["1.17", "1.18"]
+        otp-version: ["26", "27"]
         include:
+          - elixir-version: "1.16"
+            otp-version: "26"
+          - elixir-version: "1.15"
+            otp-version: "26"
           - elixir-version: "1.14"
             otp-version: "25"
           - elixir-version: "1.13"
@@ -20,7 +24,7 @@ jobs:
             otp-version: "24"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
         with:
@@ -43,12 +47,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.15"
-          otp-version: "26"
+          elixir-version: "1.18"
+          otp-version: "27"
 
       - name: Install dependencies
         run: mix deps.get
